@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: telegram_raw # The name of your source system
+    database: "{{ env_var('POSTGRES_DB') }}" # Using env var as configured in profiles.yml
+    schema: public # The schema where raw_telegram_messages table exists
+
+    tables:
+      - name: raw_telegram_messages # The actual table name in your DB
+        description: "Raw messages extracted from Telegram channels."
+        columns:
+          - name: id
+            description: "Primary key of the raw message record."
+            tests:
+              - unique
+              - not_null
+          - name: message_data
+            description: "Original JSONB data of the Telegram message."
+          - name: loaded_at
+            description: "Timestamp when the message was loaded into the database."
+          - name: file_path
+            description: "Path to the original JSON file from which the message was loaded."
+            tests:
+              - unique # Ensure we don't load the same file twice via file_path
