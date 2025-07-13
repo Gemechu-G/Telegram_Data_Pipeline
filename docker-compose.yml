@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # Map container port 5432 to host port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Python Application Service (will run Dagster/FastAPI)
+  app:
+    build:
+      context: . # Build from the Dockerfile in the current directory
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app # Mount the local project directory into the container for easy development
+      - ./data:/app/data # Explicitly mount a data directory for scraped data
+    depends_on:
+      postgres:
+        condition: service_healthy # Ensure postgres is ready before starting app
+    env_file:
+      - ./.env # Load environment variables from .env file
+    ports:
+      - "8000:8000" # For FastAPI
+      - "3000:3000" # For Dagster Dagit UI
+    # Command can be overridden by Dagster or specific task execution
+    # For now, a placeholder, Dagster will manage execution
+    command: tail -f /dev/null # Keep container running for development/debugging
+
+volumes:
+  postgres_data: # Define named volume for PostgreSQL data persistence
