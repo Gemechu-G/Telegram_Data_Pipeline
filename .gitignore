@@ -1,0 +1,8 @@
+.env
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+*.pyc
+*.sqlite
+data/raw/ # You might want to ignore raw data if it's too large for Git, or if you prefer it managed by the pipeline and not versioned. For now, let's keep it in Docker volume.
